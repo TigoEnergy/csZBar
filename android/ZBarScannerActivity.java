@@ -27,9 +27,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.view.Surface;
-
+import android.util.DisplayMetrics;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +48,7 @@ public class ZBarScannerActivity extends Activity
 implements SurfaceHolder.Callback {
 
     //for barcode types
-    private Collection<ZBarcodeFormat> mFormats = null;
+    private Collection<ZBarcodeFormat> mFormats = new ArrayList<ZBarcodeFormat>();
 
     // Config ----------------------------------------------------------
 
@@ -71,6 +72,7 @@ implements SurfaceHolder.Callback {
     // Customisable stuff
     String whichCamera;
     String flashMode;
+    String orientation;
 
     // For retrieving R.* resources, from the actual app package
     // (we can't use actual.application.package.R.* in our code as we
@@ -140,12 +142,16 @@ implements SurfaceHolder.Callback {
             Boolean drawSight = params.optBoolean("drawSight", true);
             whichCamera = params.optString("camera");
             flashMode = params.optString("flash");
+            orientation = params.optString("orientation");
 
             // Initiate instance variables
             autoFocusHandler = new Handler();
             scanner = new ImageScanner();
             scanner.setConfig(0, Config.X_DENSITY, 3);
             scanner.setConfig(0, Config.Y_DENSITY, 3);
+
+            mFormats.add(ZBarcodeFormat.CODE39);
+            mFormats.add(ZBarcodeFormat.CODE128);
 
             // Set the config for barcode formats
             for(ZBarcodeFormat format : getFormats()) {
@@ -154,6 +160,11 @@ implements SurfaceHolder.Callback {
 
             // Set content view
             setContentView(getResourceId("layout/cszbarscanner"));
+            if(orientation.equals("portrait")) {
+                this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            } else if(orientation.equals("landscape")) {
+                this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            }
 
             // Update view with customisable strings
             TextView view_textTitle = (TextView) findViewById(getResourceId("id/csZbarScannerTitle"));
@@ -399,8 +410,21 @@ implements SurfaceHolder.Callback {
             Camera.Parameters parameters = camera.getParameters();
             Camera.Size size = parameters.getPreviewSize();
 
+            int l, t, w, h;
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            int device_w = getWindowManager().getDefaultDisplay().getWidth();
+            int device_h = getWindowManager().getDefaultDisplay().getHeight();
+            Log.v("csZBar",(new StringBuilder("display density ")).append(metrics.density).toString());
+
             Image barcode = new Image(size.width, size.height, "Y800");
             barcode.setData(data);
+            int bar_height = Math.round(100f * metrics.density);
+            h = Math.round(((float)size.width / (float)device_h) * (100f * metrics.density));
+            l = Math.round((size.width - h) / 2f);
+            //Log.v("csZBar",(new StringBuilder("camera width ")).append(size.width).append(" height ").append(size.height).toString());
+            //Log.v("csZBar",(new StringBuilder("width ")).append(device_w).append(" height ").append(device_h).toString());
+            //Log.v("csZBar",(new StringBuilder("left ")).append(l).append(" barH ").append(h).append(" bar_height ").append(bar_height).toString());
+            barcode.setCrop(l, 0, h, size.height);
 
             if (scanner.scanImage(barcode) != 0) {
                 String qrValue = "";

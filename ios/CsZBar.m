@@ -30,7 +30,7 @@
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return YES;
+    return NO;
 }
 
 #pragma mark - Plugin API
@@ -50,7 +50,11 @@
 
         self.scanReader.readerDelegate = self;
         self.scanReader.supportedOrientationsMask = ZBarOrientationMask(UIInterfaceOrientationPortrait);
+        self.scanReader.readerView.session.sessionPreset = AVCaptureSessionPreset1280x720;
 
+        [self.scanReader.scanner setSymbology: 0 config: ZBAR_CFG_ENABLE to: 0];
+        [self.scanReader.scanner setSymbology: ZBAR_CODE128 config: ZBAR_CFG_ENABLE to: 1];
+        
         // Get user parameters
         NSDictionary *params = (NSDictionary*) [command argumentAtIndex:0];
         NSString *camera = [params objectForKey:@"camera"];
@@ -99,13 +103,44 @@
         [self.scanReader.view addSubview:toolbarViewFlash];
 
         if (drawSight) {
-            CGFloat dim = screenWidth < screenHeight ? screenWidth / 1.1 : screenHeight / 1.1;
-            UIView *polygonView = [[UIView alloc] initWithFrame: CGRectMake  ( (screenWidth/2) - (dim/2), (screenHeight/2) - (dim/2), dim, dim)];
             
-            UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0,dim / 2, dim, 1)];
-            lineView.backgroundColor = [UIColor redColor];
-            [polygonView addSubview:lineView];
+            //CGFloat dim = screenWidth < screenHeight ? screenWidth / 1.1 : screenHeight / 1.1;
+            CGFloat dim = 100;
+            //UIView *polygonView = [[UIView alloc] initWithFrame: CGRectMake  ( (screenWidth/2) - (dim/2), (screenHeight/2) - (dim/2), dim, dim)];
+            UIView *polygonView = [[UIView alloc] initWithFrame: CGRectMake(0, (screenHeight/2) - (dim/2), screenWidth, dim)];
+            polygonView.backgroundColor = [UIColor blackColor];
+            polygonView.alpha = 0.1;
+            
+            /*
+            UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0,(dim / 2) - 100, dim, 100)];
+            lineView.backgroundColor = [UIColor blackColor];
+            lineView.alpha = 0.1;
+            [polygonView addSubview:lineView];*/
 
+            CGFloat x,y,w,h;
+            x = polygonView.frame.origin.x / screenWidth;
+            y = (polygonView.frame.origin.y + dim) / screenHeight;
+            w = polygonView.frame.size.width / screenWidth;
+            h = 10 / screenHeight;
+/*            
+            NSLog(@"x = %f",x);
+            NSLog(@"y = %f",y);
+            NSLog(@"w = %f",w);
+            NSLog(@"h = %f",h);
+            
+            NSLog(@"pv.x = %f",polygonView.frame.origin.x);
+            NSLog(@"pv.y = %f",polygonView.frame.origin.y);
+            NSLog(@"pv.w = %f",polygonView.frame.size.width);
+            NSLog(@"pv.h = %f",polygonView.frame.size.height);
+            
+            NSLog(@"sc.w = %f",scanReader.view.frame.size.width);
+            NSLog(@"sc.h = %f",scanReader.view.frame.size.height);
+            
+            NSLog(@"screenWidth = %f",screenWidth);
+            NSLog(@"screenHeight = %f",screenHeight);
+*/            
+            self.scanReader.scanCrop = CGRectMake(y, x, h, w);
+            
             self.scanReader.cameraOverlayView = polygonView;
         }
 
