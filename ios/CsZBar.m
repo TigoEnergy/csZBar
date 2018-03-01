@@ -75,6 +75,9 @@
             self.scanReader.cameraFlashMode = UIImagePickerControllerCameraFlashModeAuto;
         }
 
+//fix for building with iOS 11 SDK and higher
+//https://github.com/phongphan/csZBar/commit/b573955650b2fedb022d8192ef6796aeb1fb21e7#diff-95c798d13eb89bab34ce5e45c35c8d75
+#if __IPHONE_OS_VERSION_MAX_ALLOWED < 110000
         // Hack to hide the bottom bar's Info button... originally based on http://stackoverflow.com/a/16353530
 	NSInteger infoButtonIndex;
         if ([[[UIDevice currentDevice] systemVersion] compare:@"10.0" options:NSNumericSearch] != NSOrderedAscending) {
@@ -84,6 +87,8 @@
         }
         UIView *infoButton = [[[[[self.scanReader.view.subviews objectAtIndex:2] subviews] objectAtIndex:0] subviews] objectAtIndex:infoButtonIndex];
         [infoButton setHidden:YES];
+#endif
+//fix end
 
         //UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem]; [button setTitle:@"Press Me" forState:UIControlStateNormal]; [button sizeToFit]; [self.view addSubview:button];
         CGRect screenRect = [[UIScreen mainScreen] bounds];
