@@ -76,4 +76,28 @@
     }
 }
 
+- (void) viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+
+    UIToolbar* toolbar = [[controls subviews] firstObject];
+    if (![toolbar isKindOfClass:UIToolbar.class])
+        return;
+
+//fix for building with iOS 11 SDK and higher
+//https://github.com/phongphan/csZBar/commit/b573955650b2fedb022d8192ef6796aeb1fb21e7#diff-95c798d13eb89bab34ce5e45c35c8d75
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
+    // HACK to hide the Info button
+    for (UIBarButtonItem* item in [toolbar items]) {
+        UIButton* button = [item customView];
+        if ([button isKindOfClass:UIButton.class]) {
+            UIButtonType buttonType = [button buttonType];
+            if (buttonType == UIButtonTypeInfoDark || buttonType == UIButtonTypeInfoLight) {
+                [button setHidden:YES];
+            }
+        }
+    }
+#endif
+}
+// fix end
+
 @end
