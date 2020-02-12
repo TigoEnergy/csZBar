@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TigoEnergy/csZBar.git"
+    "url": "https://github.com/TigoEnergy/csZBar.git"
   },
   "keywords": [
     "cszbar",
